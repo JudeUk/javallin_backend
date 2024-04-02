@@ -1,0 +1,136 @@
+# from io import BytesIO
+# import tempfile
+# import PyPDF2
+# import docx2txt
+# from django.shortcuts import render
+# from rest_framework import viewsets
+# from rest_framework.response import Response
+# from .models import Case
+# from .serializers import CaseDataSerializer, CaseSerializer
+# from django import views
+# from rest_framework.permissions import AllowAny
+# from rest_framework.decorators import api_view, permission_classes, action
+# import pymongo
+# import requests
+
+
+# uri = "mongodb+srv://javallin:<javallin>@javallinmongodb.par0ddp.mongodb.net/?retryWrites=true&w=majority&appName=JavallinMongoDb"
+
+# huggingFaceToken = "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"
+# huggingFaceWriteToken = "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"
+
+# API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+# headers = {"Authorization": f"Bearer {huggingFaceToken}"}
+
+# client = pymongo.MongoClient("mongodb+srv://javallin:javallin@javallinmongodb.par0ddp.mongodb.net/?retryWrites=true&w=majority&appName=JavallinMongoDb"
+# )
+# db = client.sample_mflix
+# collection =db.movies
+
+
+
+
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt                                                                         
+
+
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def create(request):
+#         case = Case.objects.create(
+#             request.data.get('facts') ,
+#             request.data.get('facts') ,
+#             request.data.get('facts')            
+#         )
+#         serializer = CaseDataSerializer(data=request.data)
+
+#         print(serializer)
+
+
+
+
+# class CaseViewSet(viewsets.ViewSet):
+#     def create(self, request):
+#         serializer = CaseSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         return Response(serializer.errors, status=400)
+
+
+
+
+# @csrf_exempt
+# @permission_classes([AllowAny])
+# def upload_file(request):
+#     if request.method == 'POST' and request.FILES:
+#         uploaded_files = request.FILES.getlist('facts of case')
+
+#         extracted_texts = []
+#         document_embeddings = []  # Store embeddings for each document
+
+#         for i in range(len(uploaded_files)-1):
+#             f = uploaded_files[i]
+#             file_extension = f.name.split('.')[-1].lower()
+
+#             try:
+#                 print(f.content_type)
+#                 if file_extension in ['pdf', 'docx']:
+#                     # In-memory file handling
+#                     file_content = f.read()
+#                     in_memory_file = BytesIO(file_content)
+
+#                     if file_extension == 'pdf':
+#                         pdf_reader = PyPDF2.PdfReader(in_memory_file)
+#                         text = '\n'.join([page.extract_text() for page in pdf_reader.pages])
+#                     elif file_extension == 'docx':
+#                         text = docx2txt.process(in_memory_file)
+#                     extracted_texts.append(text)
+#                     print(extracted_texts)
+
+#                     # Generate sentence embeddings for each chunk of text
+#                     # response = requests.post(API_URL, headers=headers, json={"inputs": text.split("\n")})
+#                     # chunk_embeddings = response.json()["embeddings"]
+
+#                     # # Calculate average embedding for the document
+#                     # document_embedding = sum(chunk_embeddings) / len(chunk_embeddings)
+#                     # document_embeddings.append(document_embedding.tolist())  # Convert to list for JSON
+
+#                     # print(extracted_texts)
+#                     # print(document_embeddings)
+
+#             except Exception as e:
+#                 return JsonResponse({'error': 'Error extracting text from file: {}'.format(e)}, status=422)
+
+#         # **Here's the modification:**
+#         # Instead of sending the entire document embedding, use the average embedding as the query
+#         # query_embedding = document_embeddings[0]  # Assuming the first uploaded file is the user input
+
+#         # You can now use the query_embedding for your similarity comparison logic
+#         # This might involve searching the MongoDB collection or implementing a different comparison approach
+
+#         # results =  collection.aggregate([
+            
+#         #     {
+#         #         "$vectorSearch":{
+#         #                 "queryVector":generate_embeddings('Space Movies'),
+#         #                 "path":"plot_embeddings",
+#         #                 "numCandidates":100,
+#         #                 "limit":4,
+#         #                 "index":"PlotSemanticSearch",
+#         #         }}
+#         # ]);
+
+#         # for doc in results:
+#         #     print({doc["title"]})
+
+
+#         return JsonResponse({'message': 'Text extracted successfully', 'texts': extracted_texts, 'query_embedding': "query_embedding"}, status=200)
+
+#     return JsonResponse({'error': 'No file provided'}, status=400)
+
+
+# def generate_embeddings(text: str) -> list[float]:
+    
+#     response = requests.post(API_URL, headers={"Authorization": f"Bearer {huggingFaceWriteToken}"}, json={"inputs":text})
+#     return response.json()
